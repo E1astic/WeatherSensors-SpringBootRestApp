@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface MeasurementRepository extends JpaRepository<Measurement, Integer> {
 
-    int countByRaining(boolean raining);
+    Long countByRaining(boolean raining);
 }

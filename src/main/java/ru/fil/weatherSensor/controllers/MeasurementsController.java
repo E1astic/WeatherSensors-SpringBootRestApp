@@ -6,19 +6,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import ru.fil.weatherSensor.dto.MeasurementDTO;
-import ru.fil.weatherSensor.dto.SensorDTO;
+import ru.fil.weatherSensor.dto.MeasurementDTOResponse;
 import ru.fil.weatherSensor.models.Measurement;
 import ru.fil.weatherSensor.models.Sensor;
 import ru.fil.weatherSensor.services.MeasurementService;
 import ru.fil.weatherSensor.services.SensorService;
 import ru.fil.weatherSensor.utils.ErrorBody;
+import ru.fil.weatherSensor.utils.ErrorUtils;
 import ru.fil.weatherSensor.utils.MeasurementDTOValidator;
-import ru.fil.weatherSensor.utils.MeasurementNotAddedException;
+import ru.fil.weatherSensor.utils.MeasurementException;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
@@ -39,12 +38,14 @@ public class MeasurementsController {
     }
 
     @GetMapping
-    public List<MeasurementDTO> getAll() {
-        return measurementService.getAll().stream().map(this::convertToMeasurementDTO).collect(Collectors.toList());
+    public MeasurementDTOResponse getAll() {
+        MeasurementDTOResponse measurementsResponse=new MeasurementDTOResponse();
+        measurementsResponse.setMeasurements(measurementService.getAll().stream().map(this::convertToMeasurementDTO).collect(Collectors.toList()));
+        return measurementsResponse;
     }
 
     @GetMapping("/rainyDaysCount")
-    public int getRainyDaysCount() {
+    public Long getRainyDaysCount() {
         return measurementService.getRainyDaysCount();
     }
 
@@ -53,11 +54,7 @@ public class MeasurementsController {
                                           BindingResult bindingResult) {
         measurementDTOValidator.validate(measurementDTO, bindingResult);
         if(bindingResult.hasErrors()) {
-            StringBuilder errorMessage=new StringBuilder();
-            for(FieldError error : bindingResult.getFieldErrors()) {
-                errorMessage.append(error.getField()).append(" - ").append(error.getDefaultMessage()).append("; ");
-            }
-            throw new MeasurementNotAddedException(errorMessage.toString());
+            ErrorUtils.throwingMeasurementException(bindingResult);
         }
 
         measurementService.save(convertToMeasurement(measurementDTO));
@@ -65,7 +62,7 @@ public class MeasurementsController {
     }
 
     @ExceptionHandler
-    private ResponseEntity<ErrorBody> handleException(MeasurementNotAddedException e) {
+    private ResponseEntity<ErrorBody> handleException(MeasurementException e) {
         ErrorBody errorBody=new ErrorBody(e.getMessage());
         return new ResponseEntity(errorBody, HttpStatus.BAD_REQUEST);
     }
@@ -75,6 +72,8 @@ public class MeasurementsController {
         String sensorName=measurementDTO.getSensor().getName();
         Sensor sensor=sensorService.getByName(sensorName).get();
 
+        // здесь у нас смапятся все поля кроме айди сенсора (название сенсора смапится),
+        // следовательно, измерение будет ссылаться на несуществующий сенсор
         Measurement measurement = modelMapper.map(measurementDTO, Measurement.class);
 
         // делаем двустороннее связывание
@@ -85,11 +84,7 @@ public class MeasurementsController {
     }
 
     private MeasurementDTO convertToMeasurementDTO(Measurement measurement) {
-        MeasurementDTO measurementDTO=modelMapper.map(measurement, MeasurementDTO.class);
-        SensorDTO sensorDTO=new SensorDTO();
-        sensorDTO.setName(measurement.getSensor().getName());
-        measurementDTO.setSensor(sensorDTO);
-        return measurementDTO;
+        return modelMapper.map(measurement, MeasurementDTO.class);
     }
 
 }

@@ -2,16 +2,19 @@ package ru.fil.weatherSensor.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 public class MeasurementDTO {
 
     @Min(value = -100, message = "Value should been greater than -100")
     @Max(value = 100, message = "Value should been less than 100")
-    private float value;
+    @NotNull(message = "Value should not be empty")
+    private Float value;
 
-    private boolean raining;
+    @NotNull(message = "Raining should not be empty")
+    private Boolean raining;
 
+    @NotNull(message = "Sensor should not be empty")
     private SensorDTO sensor;
 
     public MeasurementDTO() {}

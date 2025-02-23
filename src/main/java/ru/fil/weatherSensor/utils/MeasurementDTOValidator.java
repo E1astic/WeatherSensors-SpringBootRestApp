@@ -32,6 +32,5 @@ public class MeasurementDTOValidator implements Validator {
         if(optional.isEmpty()) {
             errors.rejectValue("sensor", "", "Sensor with this name not exists");
         }
-
     }
 }

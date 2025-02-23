@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.context.annotation.PropertySource;
 
 import java.time.LocalDateTime;
@@ -18,14 +19,18 @@ public class Measurement {
 
     @Min(value = -100)
     @Max(value = 100)
-    private float value;
+    @NotNull(message = "Value should not be empty")
+    private Float value;
 
-    private boolean raining;
+    @NotNull(message = "Raining should not be empty")
+    private Boolean raining;
 
     @ManyToOne()
     @JoinColumn(name = "sensor_id", referencedColumnName = "id")
+    @NotNull(message = "Sensor should not be empty")
     private Sensor sensor;
 
+    @NotNull(message = "Time should not be empty")
     private LocalDateTime measuredAt;
 
     public Measurement() {}

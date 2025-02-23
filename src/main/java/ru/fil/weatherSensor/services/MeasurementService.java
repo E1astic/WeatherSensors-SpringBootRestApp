@@ -24,13 +24,17 @@ public class MeasurementService {
         return measurementRepository.findAll();
     }
 
-    public int getRainyDaysCount(){
+    public Long getRainyDaysCount(){
         return measurementRepository.countByRaining(true);
     }
 
     @Transactional
     public void save(Measurement measurement) {
-        measurement.setMeasuredAt(LocalDateTime.now());
+        enrichMeasurement(measurement);
         measurementRepository.save(measurement);
+    }
+
+    private void enrichMeasurement(Measurement measurement) {
+        measurement.setMeasuredAt(LocalDateTime.now());
     }
 }
