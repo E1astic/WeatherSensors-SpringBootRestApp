@@ -17,8 +17,8 @@ public class Measurement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Min(value = -100)
-    @Max(value = 100)
+    @Min(value = -100, message = "Value should been greater than -100")
+    @Max(value = 100, message = "Value should been less than 100")
     @NotNull(message = "Value should not be empty")
     private Float value;
 
